@@ -53,15 +53,17 @@ export default class VegaEmbed extends React.PureComponent<VegaEmbedProps> {
 
   modifyView = (action: ViewListener) => {
     if (this.viewPromise) {
-      this.viewPromise
+      return this.viewPromise
         .then(view => {
           if (view) {
-            action(view);
+            return new Promise(resolve => resolve(action(view)));
+          } else {
+            return Promise.reject('No view exists');
           }
-
-          return true;
         })
         .catch(this.handleError);
+    } else {
+      return Promise.reject('No view exists');
     }
   };
 
@@ -79,10 +81,10 @@ export default class VegaEmbed extends React.PureComponent<VegaEmbedProps> {
             }
           });
           if (signalNames.length > 0) {
-            view.run();
+            return view.runAsync().then(() => view);
+          } else {
+            return view;
           }
-
-          return view;
         })
         .catch(this.handleError);
 

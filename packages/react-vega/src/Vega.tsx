@@ -46,9 +46,10 @@ export default class Vega extends React.PureComponent<VegaProps> {
   }
 
   handleNewView: ViewListener = (view: View) => {
-    this.update();
-    const { onNewView = NOOP } = this.props;
-    onNewView(view);
+    this.update().then(() => {
+      const { onNewView = NOOP } = this.props;
+      onNewView(view);
+    });
   };
 
   update() {
@@ -58,13 +59,17 @@ export default class Vega extends React.PureComponent<VegaProps> {
       const datasetNames = Object.keys(data);
 
       if (this.vegaEmbed.current && datasetNames.length > 0) {
-        this.vegaEmbed.current.modifyView(view => {
+        return this.vegaEmbed.current.modifyView(view => {
           datasetNames.forEach(name => {
             updateData(view, name, data[name]);
           });
-          view.run();
+          return view.runAsync();
         });
+      } else {
+        return Promise.resolve();
       }
+    } else {
+      return Promise.resolve();
     }
   }
 
